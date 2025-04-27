@@ -1,23 +1,28 @@
+import { verifyJWT } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import Product from "@/lib/models/Product";
+import Admin from "@/lib/models/Admin";
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
     await connectDB();
 
+    // CHECK TOKEN
     const token = request.cookies.get("token")?.value;
     if (!token) {
-      return NextResponse.json({ mes: "auth error" }, { status: 401 });
+      return NextResponse.json({ mes: "aut error" }, { status: 401 });
     }
 
     const { payload } = await verifyJWT(token);
-    const findUser = await User.findOne({ _id: payload._id });
+    const findAdmin = await Admin.findOne({ _id: payload._id });
+    if (!findAdmin)
+      return NextResponse.json({ mes: "aut error" }, { status: 401 });
 
     // take body
     const body = await request.json();
 
-    // create Product model with body
+    // create User model with body
     const productModel = await new Product({
       title: body.title,
       subtitle: body.subtitle,
@@ -29,6 +34,9 @@ export async function POST(request) {
       { status: 201 }
     );
   } catch (error) {
+    if (error.code === "ERR_JWS_INVALID")
+      return NextResponse.json({ mes: "aut error" }, { status: 401 });
+
     return NextResponse.json({ mes: error.message }, { status: 500 });
   }
 }

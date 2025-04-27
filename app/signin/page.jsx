@@ -20,7 +20,7 @@ export default function SignInForm() {
     })
     const resData = await res.json()
     if(res.status==200){
-      router.push('/adminpanel');
+      router.push('/adminPanel');
     }else{
       alert(resData.mes)
     }
